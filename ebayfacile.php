@@ -182,6 +182,9 @@ function updatecall($verb, $xml) {
   </{$verb}Request>
 RXB;
 
+	# DEBUG
+	#log_msg($request_xml_body);
+
   return simplexml_load_string(send_http_request($verb, $request_xml_body));
 }
 

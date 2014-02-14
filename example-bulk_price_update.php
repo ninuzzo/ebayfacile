@@ -28,7 +28,7 @@ $filter_array =
 $filter_string = EbayFacile\build_URL_Array($filter_array);
 
 if (($handle = fopen('new_prices.csv', 'r')) != FALSE) {
-  for ($codes = $done = $errors = 0; (list($code, $price) = fgetcsv($handle, 100, ';')) !== FALSE; $codes++) {
+  for ($codes = $done = $errors = 0; (list($code, $price, $quantity, $shipment_cost) = fgetcsv($handle, 100, ';')) !== FALSE; $codes++) {
     $resp = Ebayfacile\searchcall('findItemsIneBayStores', $code, $filter_string);
 
     # Check to see if the request was successful, else print an error
@@ -46,6 +46,10 @@ if (($handle = fopen('new_prices.csv', 'r')) != FALSE) {
          <Item>
           <ItemID>$item->itemId</ItemID>
           <StartPrice currencyID="EUR">$price</StartPrice>
+          <Quantity>$quantity</Quantity>
+          <shippingInfo>
+            <shippingServiceCost currencyId="EUR">$shipment_cost</shippingServiceCost>
+          </shippingInfo>
          </Item>
 EOX;
         $resp = EbayFacile\updatecall('ReviseFixedPriceItem', $xml);
