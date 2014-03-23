@@ -47,9 +47,38 @@ if (($handle = fopen('new_prices.csv', 'r')) != FALSE) {
           <ItemID>$item->itemId</ItemID>
           <StartPrice currencyID="EUR">$price</StartPrice>
           <Quantity>$quantity</Quantity>
-          <shippingInfo>
-            <shippingServiceCost currencyId="EUR">$shipment_cost</shippingServiceCost>
-          </shippingInfo>
+          <ShippingDetails>
+           <ApplyShippingDiscount>false</ApplyShippingDiscount>
+           <CalculatedShippingRate>
+            <WeightMajor measurementSystem="English" unit="lbs">0</WeightMajor>
+            <WeightMinor measurementSystem="English" unit="oz">0</WeightMinor>
+           </CalculatedShippingRate>
+           <InsuranceFee currencyID="EUR">0.0</InsuranceFee>
+           <InsuranceOption>NotOffered</InsuranceOption>
+           <SalesTax>
+            <SalesTaxPercent>0.0</SalesTaxPercent>
+            <ShippingIncludedInTax>false</ShippingIncludedInTax>
+           </SalesTax>
+           <ShippingServiceOptions>
+            <ShippingService>IT_ExpressCourier</ShippingService>
+            <ShippingServiceCost currencyID="EUR">$shipment_cost</ShippingServiceCost>
+            <ShippingServiceAdditionalCost currencyID="EUR">$shipment_cost</ShippingServiceAdditionalCost>
+            <ShippingServicePriority>1</ShippingServicePriority>
+            <ExpeditedService>true</ExpeditedService>
+            <ShippingTimeMin>1</ShippingTimeMin>
+            <ShippingTimeMax>2</ShippingTimeMax>
+           </ShippingServiceOptions>
+           <ShippingType>Flat</ShippingType>
+           <ThirdPartyCheckout>false</ThirdPartyCheckout>
+           <InsuranceDetails>
+            <InsuranceOption>NotOffered</InsuranceOption>
+           </InsuranceDetails>
+           <ShippingDiscountProfileID>0</ShippingDiscountProfileID>
+           <InternationalShippingDiscountProfileID>0</InternationalShippingDiscountProfileID>
+           <SellerExcludeShipToLocationsPreference>true</SellerExcludeShipToLocationsPreference>
+          </ShippingDetails>
+          <ShipToLocations>IT</ShipToLocations>
+          <Site>Italy</Site>
          </Item>
 EOX;
         $resp = EbayFacile\updatecall('ReviseFixedPriceItem', $xml);
@@ -60,8 +89,14 @@ EOX;
           break 2;
         }
         else {
+          # DEBUG
+          #EbayFacile\log_xml($resp);
+          
           $done++;
         }
+        
+        # DEBUG
+        #die();
       }
       # DEBUG
       EbayFacile\log_msg("update done for code $code");
