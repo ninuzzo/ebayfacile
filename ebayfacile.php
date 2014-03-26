@@ -192,6 +192,11 @@ RXB;
 	# DEBUG
 	#log_msg($request_xml_body);
 
+	# DEBUG
+	#$result = send_http_request($verb, $request_xml_body);
+	#echo format_xml_string($result);
+	#return simplexml_load_string($result);
+
   return simplexml_load_string(send_http_request($verb, $request_xml_body));
 }
 

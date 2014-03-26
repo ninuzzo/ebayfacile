@@ -93,6 +93,9 @@ EOX;
 					else {
 						# DEBUG
 						#EbayFacile\log_xml($resp2);
+
+						# DEBUG
+						#echo $item->itemId, "\n";
 						
 						$done++;
 					}
@@ -106,6 +109,9 @@ EOX;
 				# Print an error.
 				$errors++;
 				EbayFacile\log_msg("Item code $code not found.", E_USER_ERROR);
+
+				# DEBUG
+				#EbayFacile\log_xml($resp);
 			}
       $page++;
 		} while ($page <= EbayFacile\pages($resp));

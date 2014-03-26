@@ -58,7 +58,9 @@ EOX;
 	#EbayFacile\log_xml($resp);
 
 	if ($resp === FALSE || $resp->Ack != 'Success' && $resp->Ack != 'Warning') {
-		EbayFacile\log_xml($resp);
+		if ($resp !== FALSE) {
+			EbayFacile\log_xml($resp);
+		}
 	  EbayFacile\log_msg("Stopped at page $page");
 		break;
 	} else {
