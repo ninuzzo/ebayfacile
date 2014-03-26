@@ -1,6 +1,6 @@
 <?php
 /*  © 2013 eBay Inc., All Rights Reserved */ 
-/* Licensed under CDDL 1.0 -  http:# opensource.org/licenses/cddl1.php */
+/* Licensed under CDDL 1.0 -  http://opensource.org/licenses/cddl1.php */
 
 # TODO: fare diventare le variabili costanti, usare i namespace
 
@@ -33,7 +33,11 @@ const
   PRODUCTION = true,   #  toggle to true if going against production
   COMPAT_LEVEL = 535,    #  eBay API version
 
-  STORE_NAME = 'dfr-shop-online';
+  STORE_NAME = 'YOUR-STORE-NAME-GOES-HERE',
+	
+	# Min 1, max 100. See:
+	# http://developer.ebay.com/DevZone/finding/CallRef/findItemsIneBayStores.html
+	ENTRIES_PER_PAGE = 100;
 
 if (PRODUCTION) {
   $dev_id = 'YOUR-DEV-ID-KEY-GOES-HERE';   #  these prod keys are different from sandbox keys

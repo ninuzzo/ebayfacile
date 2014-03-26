@@ -81,7 +81,7 @@ EOX;
       $resp2 = EbayFacile\updatecall('ReviseFixedPriceItem', $xml);
 
 			# DEBUG
-      echo item->ItemID, "\n";
+      echo $item->ItemID, "\n";
 
 			if ($resp2->Ack != 'Success' && $resp2->Ack != 'Warning') {
 			  EbayFacile\log_xml($resp2);

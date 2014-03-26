@@ -61,7 +61,7 @@ safe_query: call parameter, e.g. keywords.
 url_filter: filter string as returned by build_URL_Array.
 */
 function searchcall($op_name, $safe_query, $url_filter = NULL,
-    $entries_per_page = 1000) {
+    $page_number = 1, $entries_per_page = 100) {
   global $app_id;
 
   $safe_query = urlencode($safe_query);  # Make the query URL-friendly
@@ -70,10 +70,17 @@ function searchcall($op_name, $safe_query, $url_filter = NULL,
   $api_call = SEARCH_ENDPOINT . "?OPERATION-NAME=$op_name&SERVICE-VERSION=" . VERSION
     . "&SECURITY-APPNAME=$app_id&GLOBAL-ID=" . GLOBAL_ID . "&RESPONSE-DATA-FORMAT=XML"
     . "&REST-PAYLOAD&storeName=" . STORE_NAME . "&keywords=$safe_query"
-    . "&paginationInput.entriesPerPage=$entries_per_page$url_filter";
+		. "&paginationInput.pageNumber=$page_number"
+		. "&paginationInput.entriesPerPage=$entries_per_page$url_filter";
 
   # Load the call and capture the document returned by eBay API.
   return simplexml_load_file($api_call);
+}
+
+# Determine number of pages in a response.
+# See: http://developer.ebay.com/DevZone/finding/CallRef/types/PaginationInput.html
+function pages($resp, $entries_per_page = ENTRIES_PER_PAGE) {
+  return ceil($resp->paginationOutput->totalEntries / ENTRIES_PER_PAGE);
 }
 
 /*
