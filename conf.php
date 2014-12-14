@@ -31,7 +31,7 @@ const
   # These keys can be obtained by registering at http://developer.ebay.com
 
   PRODUCTION = true,   #  toggle to true if going against production
-  COMPAT_LEVEL = 535,    #  eBay API version
+  COMPAT_LEVEL = 901,    #  eBay API version
 
   STORE_NAME = 'YOUR-STORE-NAME-GOES-HERE',
 	

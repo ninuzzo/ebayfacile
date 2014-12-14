@@ -115,8 +115,13 @@ function build_ebay_headers($verb) {
   Input:	$requestBody
   Output:	The HTTP Response as a String
 */
+
+# initialise a CURL session
+# http://stackoverflow.com/questions/972925/persistent-keepalive-http-with-the-php-curl-library
+$ebayfacile_connection = curl_init();
+
 function send_http_request($verb, $request_body) {
-  global $server_url;
+	global $server_url, $ebayfacile_connection;
 
   # build eBay headers using variables passed via constructor
   $headers = build_ebay_headers($verb);
@@ -125,46 +130,46 @@ function send_http_request($verb, $request_body) {
   #log_msg(var_dump($headers));
   #log_msg($request_body);
   
-  # initialise a CURL session
-  $connection = curl_init();
   # set the server we are using (could be Sandbox or Production server)
-  curl_setopt($connection, CURLOPT_URL, $server_url);
+  curl_setopt($ebayfacile_connection, CURLOPT_URL, $server_url);
   
+	curl_setopt($ebayfacile_connection, CURLOPT_FORBID_REUSE, 0);
+
   # stop CURL from verifying the peer's certificate
-  curl_setopt($connection, CURLOPT_SSL_VERIFYPEER, 0);
-  curl_setopt($connection, CURLOPT_SSL_VERIFYHOST, 0);
+  curl_setopt($ebayfacile_connection, CURLOPT_SSL_VERIFYPEER, 0);
+  curl_setopt($ebayfacile_connection, CURLOPT_SSL_VERIFYHOST, 0);
   
-  curl_setopt($connection, CURLOPT_CONNECTTIMEOUT, CONNECTTIMEOUT);
-  curl_setopt($connection, CURLOPT_TIMEOUT, TIMEOUT);
+  curl_setopt($ebayfacile_connection, CURLOPT_CONNECTTIMEOUT, CONNECTTIMEOUT);
+  curl_setopt($ebayfacile_connection, CURLOPT_TIMEOUT, TIMEOUT);
 
   # set the headers using the array of headers
-  curl_setopt($connection, CURLOPT_HTTPHEADER, $headers);
+  curl_setopt($ebayfacile_connection, CURLOPT_HTTPHEADER, $headers);
   
   # set method as POST
-  curl_setopt($connection, CURLOPT_POST, 1);
+  curl_setopt($ebayfacile_connection, CURLOPT_POST, 1);
   
   # set the XML body of the request
-  curl_setopt($connection, CURLOPT_POSTFIELDS, $request_body);
+  curl_setopt($ebayfacile_connection, CURLOPT_POSTFIELDS, $request_body);
   
   # set it to return the transfer as a string from curl_exec
-  curl_setopt($connection, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ebayfacile_connection, CURLOPT_RETURNTRANSFER, 1);
   
   # Send the Request. Retry up to a certain number of times.
   for ($tries = 1; $tries <= MAX_TRIES; $tries++) {
-    if (($response = curl_exec($connection)) === FALSE) {
+    if (($response = curl_exec($ebayfacile_connection)) === FALSE) {
       if ($tries == MAX_TRIES) {
-        log_msg(curl_error($connection));
+        log_msg(curl_error($ebayfacile_connection));
         die();
       } else {
-        log_msg(curl_error($connection), E_USER_WARNING);
+        log_msg(curl_error($ebayfacile_connection), E_USER_WARNING);
       }
     } else {
       break;
     }
   }
   
-  # close the connection
-  curl_close($connection);
+  # Do not close the connection, to make it persistent.
+  #curl_close($ebayfacile_connection);
   
   # DEBUG
   #log_msg(format_xml_string($response));
@@ -177,37 +182,58 @@ function send_http_request($verb, $request_body) {
 verb: edit operation name.
 xml: xml code that defined the updates.
 */
-function updatecall($verb, $xml) {
+function updatecall($verb, $xml, array $opt = array()) {
   global $user_token;
+  $defopt = array('debug' => FALSE, 'waittime' => 60, 'retry' => TRUE);
 
+  $opt = array_merge($defopt, $opt);
   # Build the request Xml string.
   $request_xml_body = <<<RXB
-  <?xml version="1.0" encoding="utf-8" ?>
-  <{$verb}Request xmlns="urn:ebay:apis:eBLBaseComponents">
-   <RequesterCredentials><eBayAuthToken>$user_token</eBayAuthToken></RequesterCredentials>
-   $xml
-  </{$verb}Request>
+<?xml version="1.0" encoding="utf-8" ?>
+<{$verb}Request xmlns="urn:ebay:apis:eBLBaseComponents">
+ <RequesterCredentials><eBayAuthToken>$user_token</eBayAuthToken></RequesterCredentials>
+ $xml
+</{$verb}Request>
 RXB;
 
-	# DEBUG
-	#log_msg($request_xml_body);
+  do {
+    $resp = send_http_request($verb, $request_xml_body);
 
-	# DEBUG
-	#$result = send_http_request($verb, $request_xml_body);
-	#echo format_xml_string($result);
-	#return simplexml_load_string($result);
+    if ($opt['debug']) {
+      log_xml_text($request_xml_body);  
+      if ($resp !== FALSE) {
+        log_xml_text($resp);
+      } else {
+        echo "Call returned FALSE. Connection to Ebay servers is probably not working.";
+      }
+    }
+    
+    $resp = simplexml_load_string($resp);
+    
+    if ($error = $resp === FALSE || $resp->Ack != 'Success' && $resp->Ack != 'Warning') {
+      if ($resp !== FALSE) {
+        log_xml($resp);
+      }
+      if (isset($opt['page'])) {
+        log_msg("Error at page $opt[page]");
+      }
+      sleep($opt['waittime']);
+    }    
+  } while ($opt['retry'] && $error);
 
-  return simplexml_load_string(send_http_request($verb, $request_xml_body));
+  return $resp;
 }
-
 
 function log_msg($error_msg, $error_type = E_USER_NOTICE) {
   echo "$error_msg<br>"; flush();
-  trigger_error($error_msg);
+  trigger_error('----------------------------------------------------------------------------');
 }
 
 function log_xml($xml) {
   log_msg(format_xml_string($xml->asXML()));
 }
 
+function log_xml_text($xml) {
+  log_msg(format_xml_string($xml));
+}
 ?>
